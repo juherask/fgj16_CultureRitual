@@ -1,25 +1,25 @@
 
-#Funktio ajetaan jokaiselle populaation jäsenelle tietyin aikavälein
+#Funktio ajetaan jokaiselle populaation jasenelle tietyin aikavalein
 #
 def threshold_actions(target, action_lib):
-    #Toiminto kohdatessa toisen kotikylän ihmisen
+    #Toiminto kohdatessa toisen kotikylan ihmisen
     initAct = target.propensity_library
 
     #propensityLibrary koostuu string-integer -pareista,
-    #string on emootion nimi, integer välillä 0...100
+    #string on emootion nimi, integer valilla 0...100
 
     #Jos emootion arvo on suurempi kuin toimintakynnys, toiminta
     #toteutuu kahden ihmisen kohdatessa
     
-    #Toiminto kohdatessa vieraan kylän ihmisen
+    #Toiminto kohdatessa vieraan kylan ihmisen
     #actionLib = {
-    #    #Turvallisuuden vallitessa ihmiset lisääntyvät kohdatessaan   
+    #    #Turvallisuuden vallitessa ihmiset lisaantyvat kohdatessaan   
     #    "safety":multiply(),
     #    #Pelon vallitessa ihmiset pakenevat toisiaan
     #    "fear":flee(),
-    #    #Huvittuneisuuden vallitessa ihmiset lähestyvät toisiaan
+    #    #Huvittuneisuuden vallitessa ihmiset lahestyvat toisiaan
     #    "amusement":attract(),
-    #    #Itseluottamus = ihmiset pysähtyvät kohdatessaan toisensa
+    #    #Itseluottamus = ihmiset pysahtyvat kohdatessaan toisensa
     #    "confidence":confront(),
     #    #vastuuttomuus = toimintakynnyksen madaltaminen
     #    "hostility":violence()
@@ -89,7 +89,7 @@ hostilityMod = {"Music":10,
 
 
 def influence_population(targetPopulation, physImp):
-    #Käydään fyysisten implementaatioiden lista läpi ja
+    #Kaydaan fyysisten implementaatioiden lista lapi ja
     #lasketaan, miten populaation emootiot muuttuvat
     for imp in physImp:
         targetPopulation.safety += safetyMod[imp]

@@ -1,6 +1,6 @@
 import pygame
 from random import random, randint
-from collections import namedtuple
+from collections import OrderedDict
 from numpy import int32, int64
 import platform
 if platform.architecture()[0]=='32bit':
@@ -16,16 +16,27 @@ import pop
 X = 0
 Y = 1
 
-
 # Globals, UGLY!
 done = False
 man_sprite = None
+man_frame_key = None
 
 def load_assets():
     global man_sprite
-    man_sprite = pygame.image.load('assets/dude.png').convert_alpha()
-    pixels = pygame.surfarray.pixels2d( man_sprite )
-    
+    global man_frame_key
+    man_sprite = pygame.image.load('assets/zealot.png').convert_alpha()
+    man_frame_key = OrderedDict([
+        ("idle",[]),
+        ("walk_s",[]),
+        ("walk_n",[]),
+        ("walk_w",[]),
+        ("walk_e",[])])
+    for cycle in range(5):
+        key = man_frame_key.keys()[cycle]
+        for frame in range(4):
+            r = pygame.Rect( frame*20, cycle*30, 20, 30 )
+            man_frame_key[key].append(r)
+
 def recolor_sprite(sprite):
     pixels = pygame.surfarray.pixels2d( sprite )
     #print hex(pixels[0][0] & (2**32-1))
@@ -34,35 +45,53 @@ def recolor_sprite(sprite):
     #print(pixels[15][25], hex(pixels[15][25]))
     
     a = 255
-    r = randint(70,200)
-    g = randint(70,200)
-    b = randint(70,200)
-    light_shirt_color = a*256**3+r*256**2 + g*256 + b
+    r,g,b = randint(70,200),randint(70,200),randint(70,200)
+    base_shirt_color = a*256**3+r*256**2 + g*256 + b
+    light_shirt_color = a*256**3+(r+25)*256**2 + (g+25)*256 + (b+25)
     dark_shirt_color = a*256**3+(r-50)*256**2 + (g-50)*256 + (b-50)
     
     for x in range(len(pixels)):
         for y in range(len(pixels[0])):
-            if pixels[x][y]==color_bit_conversion(0xFF8E524A):
+            if pixels[x][y]==color_bit_conversion(0xFF9B4C16):
+                pixels[x][y] = color_bit_conversion(base_shirt_color)
+            if pixels[x][y]==color_bit_conversion(0xFFAF7F5E):
                 pixels[x][y] = color_bit_conversion(light_shirt_color)
-            if pixels[x][y]==color_bit_conversion(0xFF603833):
+            if pixels[x][y]==color_bit_conversion(0xFF663E23):
                 pixels[x][y] = color_bit_conversion(dark_shirt_color)
 
 def update(units):
     pass
         
-def draw(screen, populations):
-    global man_sprite
+def draw(screen, all_units):
+    global man_frame_key
     
-    screen.fill((255, 255, 255)) 
+    # Todo: some base graphic
+    screen.fill((29, 54, 75)) 
     
-    all_units = []
-    for p in populations:
-        all_units+=p.units
-        
     all_units.sort(key=lambda unit: unit.position[Y])
-        
     for unit in all_units:
-        screen.blit(unit.sprite, unit.position)
+        anim = None
+        if unit.dv == [0.0,0.0]:
+            anim = "idle"
+        elif abs(unit.dv[X])>abs(unit.dv[Y]):
+            if unit.dv[X]<0:
+                anim = "walk_w"
+            else:
+                anim = "walk_e"
+        else:
+            if unit.dv[Y]<0:
+                anim = "walk_n"
+            else:
+                anim = "walk_s"
+            
+        unit.sprite.set_clip( man_frame_key[anim][int(unit.anim_frame)] )
+        sprite_frame = unit.sprite.subsurface(unit.sprite.get_clip())
+        screen.blit(sprite_frame, unit.position)
+        
+        unit.anim_frame+=1.0
+        if unit.anim_frame>3.5:
+            unit.anim_frame = 0
+        
     
     pygame.display.update()
     
@@ -86,30 +115,26 @@ clock = pygame.time.Clock()
 load_assets()
 
 ## Variable initialization ##
-def initialize_population(pop_center):
-    new_pop = pop.Population()
+def initialize_population(pop_size, pop_center, all_units_list):
+    global man_sprite
+    new_pop = pop.Population(all_units_list)
     
-    units = []
     unit_man_sprite = man_sprite.copy()
     recolor_sprite(unit_man_sprite)
         
-    for i in range(10):
+    for i in range(pop_size):
         new_unit = pop.Unit(new_pop)
         new_unit.position=[pop_center[X]+randint(0,size[X]/5), pop_center[Y]+randint(0,size[Y]/5)]
         new_unit.sprite=unit_man_sprite
+        all_units_list.append( new_unit )
         
-        units.append( new_unit )
-        
-    
-    new_pop.units = units
     return new_pop
 
-pop1 = initialize_population([size[X]/5,size[Y]/2])
-pop2 = initialize_population([4*size[X]/5,size[Y]/2])
-pop1.other_populations.append(pop2)
-pop2.other_populations.append(pop1)
-
-populations = [pop1, pop2]
+all_units = []
+pop1 = initialize_population(12, [size[X]/5,size[Y]/2], all_units)
+pop2 = initialize_population(7, [3*size[X]/5,size[Y]/2], all_units)
+pop3 = initialize_population(9, [size[X]/2,size[Y]/2+50], all_units)
+populations = [pop1, pop2, pop3]
 
 ## Main game loop ##
 nloop = 0
@@ -125,12 +150,12 @@ while done == False:
     #update(all_units)
     
     # screen draw
-    draw(screen, populations)
+    draw(screen, all_units)
      
     # run at X fps
-    clock.tick(5)
+    clock.tick(1)
     
-    #pygame.image.save(screen, "screenshot%02d.tga" % nloop)
+    pygame.image.save(screen, "screenshot%02d.tga" % nloop)
     nloop+=1
  
 # close the window and quit
