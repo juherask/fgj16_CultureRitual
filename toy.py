@@ -2,17 +2,20 @@ import pygame
 from random import random, randint
 from collections import namedtuple
 from numpy import int32, int64
-
 import platform
 if platform.architecture()[0]=='32bit':
     color_bit_conversion = int64
 else:
     color_bit_conversion = int32
 
+#import os, sys
+#sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+import pop
+
 # ~DEFINES
 X = 0
 Y = 1
-Unit = namedtuple('Unit', 'position sprite state')
+
 
 # Globals, UGLY!
 done = False
@@ -45,16 +48,20 @@ def recolor_sprite(sprite):
                 pixels[x][y] = color_bit_conversion(dark_shirt_color)
 
 def update(units):
-    for unit in units:       
-        unit.position[X] = unit.position[X]+randint(-1,1) 
-        unit.position[Y] = unit.position[Y]+randint(-1,1)
+    pass
         
-def draw(screen, units):
+def draw(screen, populations):
     global man_sprite
     
     screen.fill((255, 255, 255)) 
     
-    for unit in units:
+    all_units = []
+    for p in populations:
+        all_units+=p.units
+        
+    all_units.sort(key=lambda unit: unit.position[Y])
+        
+    for unit in all_units:
         screen.blit(unit.sprite, unit.position)
     
     pygame.display.update()
@@ -79,18 +86,31 @@ clock = pygame.time.Clock()
 load_assets()
 
 ## Variable initialization ##
-units = []
-for i in range(100):
+def initialize_population(pop_center):
+    new_pop = pop.Population()
+    
+    units = []
     unit_man_sprite = man_sprite.copy()
     recolor_sprite(unit_man_sprite)
+        
+    for i in range(10):
+        new_unit = pop.Unit(new_pop)
+        new_unit.position=[pop_center[X]+randint(0,size[X]/5), pop_center[Y]+randint(0,size[Y]/5)]
+        new_unit.sprite=unit_man_sprite
+        
+        units.append( new_unit )
+        
     
-    new_unit = Unit(
-    position=[randint(0,size[X])-30, randint(0,size[Y])-50],
-    sprite=unit_man_sprite,
-    state = None) #state undefined for now
-    units.append( new_unit )
+    new_pop.units = units
+    return new_pop
 
-    
+pop1 = initialize_population([size[X]/5,size[Y]/2])
+pop2 = initialize_population([4*size[X]/5,size[Y]/2])
+pop1.other_populations.append(pop2)
+pop2.other_populations.append(pop1)
+
+populations = [pop1, pop2]
+
 ## Main game loop ##
 nloop = 0
 while done == False:
@@ -99,10 +119,13 @@ while done == False:
     handle_input_events()
     
     # update state
-    update(units)
+    for p in populations:
+        p.act()
+    
+    #update(all_units)
     
     # screen draw
-    draw(screen, units)
+    draw(screen, populations)
      
     # run at X fps
     clock.tick(5)

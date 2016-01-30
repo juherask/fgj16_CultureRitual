@@ -1,11 +1,9 @@
 
 #Funktio ajetaan jokaiselle populaation jäsenelle tietyin aikavälein
 #
-def ThresholdActions(target,emotionLibrary):
-    emotionLibrary = target.emotionLibrary
-
+def threshold_actions(target, action_lib):
     #Toiminto kohdatessa toisen kotikylän ihmisen
-    initAct = target.propensityLibrary
+    initAct = target.propensity_library
 
     #propensityLibrary koostuu string-integer -pareista,
     #string on emootion nimi, integer välillä 0...100
@@ -14,69 +12,25 @@ def ThresholdActions(target,emotionLibrary):
     #toteutuu kahden ihmisen kohdatessa
     
     #Toiminto kohdatessa vieraan kylän ihmisen
-    actionLib = {
-        #Turvallisuuden vallitessa ihmiset lisääntyvät kohdatessaan   
-        "safety":multiply(),
-        #Pelon vallitessa ihmiset pakenevat toisiaan
-        "fear":flee(),
-        #Huvittuneisuuden vallitessa ihmiset lähestyvät toisiaan
-        "amusement":attract(),
-        #Itseluottamus = ihmiset pysähtyvät kohdatessaan toisensa
-        "confidence":confront(),
-        #vastuuttomuus = toimintakynnyksen madaltaminen
-        "hostility":violence()
-        }
+    #actionLib = {
+    #    #Turvallisuuden vallitessa ihmiset lisääntyvät kohdatessaan   
+    #    "safety":multiply(),
+    #    #Pelon vallitessa ihmiset pakenevat toisiaan
+    #    "fear":flee(),
+    #    #Huvittuneisuuden vallitessa ihmiset lähestyvät toisiaan
+    #    "amusement":attract(),
+    #    #Itseluottamus = ihmiset pysähtyvät kohdatessaan toisensa
+    #    "confidence":confront(),
+    #    #vastuuttomuus = toimintakynnyksen madaltaminen
+    #    "hostility":violence()
+    #    }
     
     for currentEmotion in initAct:
         #vastuullisuus = toimintakynnyksen nostaminen
         if initAct[currentEmotion] > initAct["responsibility"]:
-            initAct[currentEmotion]
-"""
-revealLibrary = {"Music":2,
-                 "Dance":5,
-                 "Psychedelics":3,
-                 "Social isolation":-5,
-                 "Animal sacrifice":-3,
-                 "Human sacrifice":-7,
-                 "Plant sacrifice":1,
-                 "Food sacrifice":0}
-
-receiveLibrary = {"Music":10,
-                 "Dance":7,
-                 "Psychedelics":9,
-                 "Social isolation":4,
-                 "Animal sacrifice":-2,
-                 "Human sacrifice":8,
-                 "Plant sacrifice":3,
-                 "Food sacrifice":-2}
-
-usingLibrary = {"Music":-5,
-                 "Dance":7,
-                 "Psychedelics":-9,
-                 "Social isolation":-5,
-                 "Animal sacrifice":7,
-                 "Human sacrifice":-6,
-                 "Plant sacrifice":8,
-                 "Food sacrifice":6}
-
-transformingLibrary = {"Music":2,
-                 "Dance":4,
-                 "Psychedelics":5,
-                 "Social isolation":-10,
-                 "Animal sacrifice":6,
-                 "Human sacrifice":4,
-                 "Plant sacrifice":-2,
-                 "Food sacrifice":-3}
-
-reinforcingLibrary = {"Music":8,
-                 "Dance":6,
-                 "Psychedelics":-8,
-                 "Social isolation":10,
-                 "Animal sacrifice":6,
-                 "Human sacrifice":4,
-                 "Plant sacrifice":0,
-                 "Food sacrifice":-5}
-"""
+            action = action_lib[currentEmotion]
+            #print("do action", currentEmotion)
+            action()
 
 safetyMod = {"Music":2,
             "Dance":5,
@@ -134,7 +88,7 @@ hostilityMod = {"Music":10,
 
 
 
-def InfluencePopulation(targetPopulation, physImp):
+def influence_population(targetPopulation, physImp):
     #Käydään fyysisten implementaatioiden lista läpi ja
     #lasketaan, miten populaation emootiot muuttuvat
     for imp in physImp:
@@ -145,7 +99,7 @@ def InfluencePopulation(targetPopulation, physImp):
         targetPopulation.responsibility += responsibilityMod[imp]
         targetPopulation.hostility += responsibilityMod[imp]
         
-def violenceHappened(senderPopulation,targetPopulation):
+def violence_happened(senderPopulation,targetPopulation):
 
     #Such generosity weakens the giver and the recipient.
 
