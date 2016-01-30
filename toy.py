@@ -31,9 +31,9 @@ def recolor_sprite(sprite):
     dark_shirt_color = a*256**3+(r-50)*256**2 + (g-50)*256 + (b-50)
     
     for x in xrange(len(pixels)):
-	for y in xrange(len(pixels[0])):
+        for y in xrange(len(pixels[0])):
 	    if pixels[x][y]==int32(0xFF8E524A):
-		pixels[x][y] = int32(light_shirt_color)
+                pixels[x][y] = int32(light_shirt_color)
 	    if pixels[x][y]==int32(0xFF603833):
 		pixels[x][y] = int32(dark_shirt_color)
 
