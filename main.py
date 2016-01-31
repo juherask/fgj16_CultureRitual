@@ -20,11 +20,15 @@ Y = 1
 done = False
 man_sprite = None
 man_frame_key = None
+level = 0
+sounds = True
+music = True
 
 def load_assets():
     global man_sprite
     global man_frame_key
     man_sprite = pygame.image.load('assets/zealot.png').convert_alpha()
+    button_sprite = pygame.image.load('assets/button.png').convert_alpha()
     man_frame_key = OrderedDict([
         ("idle", (0.1, [])),
         ("walk_s",(0.5, [])),
@@ -60,8 +64,16 @@ def recolor_sprite(sprite):
 
 def update(units):
     pass
+
+def draw_ui(screen, buttons):
+    for btn in buttons:
+        # button is 3-tuple (color, rect, text)
         
-def draw(screen, all_units):
+        pygame.draw.rect(screen, ...)
+        #pygame.font.render()
+        myfont.render()
+
+def draw_sprites(screen, all_units):
     global man_frame_key
     
     # Todo: some base graphic
@@ -103,12 +115,114 @@ def handle_input_events():
 def on_esc_pressed():
     global done
     done = True
+
+
+def show_level_start_window(screen,levelNo):
+    #Display the start-of-level dialog box that corresponds to the current level
+    print("Displaying level start window for level "+str(level))
+    #(startWidth,startHeight) = (300,200)
+    #screen = pygame.display.set_mode((startWidth, startHeight))
+    pygame.display.set_caption('Little voice inside your head')
+    print(dir(pygame.display))
+    if sounds == True:
+        print("Playing level start sound")
+    soundLib = ["firstLevelIntro.mp3",
+                "secondLevelIntro.mp3",
+                "thirdLevelIntro.mp3"]
+    """
+    villageNames = ["Onagh",
+                    "Tuurum",
+                    "Erukun",
+                    "Tikka",
+                    "Wakkadokko",
+                    "Illur",
+                    "Tooh",
+                    "Odok",
+                    "Aaru",
+                    "Nukku",
+                    "Kaala",
+                    "Offodok",
+                    "Sellak",
+                    "Piir",
+                    "Eknaa",
+                    "Ollo",
+                    "Qir"]
+    """
+
+    missionStrings = [["The village of Tooh must grow.","The people are afraid, they need ","the feeling of safety again."],
+                      ["The rival village of Wakkadokko"," have committed ","unspeakable acts. The only way ","to solve this is ","violence.","They must not be allowed to survive.","Do what must be done."],
+                      ["The people of Eknaa are,"," breeding without any restraint!","No good can come from this.","Make it stop."," Make them know."]]
+
+    defaultButtonWidth = screen.get_width()*0.1
+    defaultButtonHeight = screen.get_height()*0.03
+
+    greyTuple = (30,30,30)
+
+    posXRel = screen.get_width()
+    posYRel = screen.get_height()
+
+    buttonDict = {"levelStart":[pygame.draw.rect(screen,greyTuple,(posXRel/2,posYRel*-0.9,defaultButtonWidth,defaultButtonHeight)),"Let it begin"],
+                  "levelEnd":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"It is done"],
+                  "Human Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.5,posYRel*-0.3,defaultButtonWidth,defaultButtonHeight)),"Human Sacrifice"],
+                  "Animal Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.7,posYRel*-0.75,defaultButtonWidth,defaultButtonHeight)),"Animal Sacrifice"],
+                  "Psychedelics":[pygame.draw.rect(screen,greyTuple,(posXRel*0.1,posYRel*-0.1,defaultButtonWidth,defaultButtonHeight)),"Psychedelics"],
+                  "Food Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.9,defaultButtonWidth,defaultButtonHeight)),"Food Sacrifice"],
+                  "Music":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"Music"],
+                  "Social Isolation":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"Social Isolation"]}
     
+
+    textMeasPosHeight = screen.get_height()/2
+    
+    for stringBit in missionStrings[levelNo]:
+        text_surface = myfont.render(stringBit, False, (255,0,0))
+        
+        #print(dir(text_surface))
+        textMeasLength = text_surface.get_width()
+        textMeasPosHeight -= text_surface.get_height()
+
+        
+
+        #button = Button() #Button class is created
+        #buttonWidthAdjust = button.get_width()/2
+        #button.setCords(screen.get_width()/2-buttonWidthAdjust)
+
+        
+
+        screen.blit(text_surface,(screen.get_width()/2-textMeasLength/2,screen.get_height()/2-textMeasPosHeight))   
+
+    
+    
+    pygame.display.flip()
+    dir(pygame.display)
+
+    running = True
+    while running:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                
+    
+    
+
+def show_level_end_window(level):
+    #Display the end-of-level dialog box that corresponds to the current level
+    print("Displaying the level end window for level "+str(level))
+
 ## Pygame initialization ##
 pygame.init()
 size = [640, 480]
 screen = pygame.display.set_mode(size)
+
+pygame.font.init() # you have to call this at the start, 
+                   # if you want to use this module.
+myfont = pygame.font.SysFont("Comic Sans MS", 30)
+
 pygame.display.set_caption('Culture Ritual')
+if music == True:
+    print("Starting music")
+    #play.music(-1)
+
 clock = pygame.time.Clock()
 
 load_assets()
@@ -135,9 +249,16 @@ pop2 = initialize_population(7, [3*size[X]/5,size[Y]/2], all_units)
 pop3 = initialize_population(9, [size[X]/2,size[Y]/2+50], all_units)
 populations = [pop1, pop2, pop3]
 
+#Intro window loop
+show_level_start_window(screen,2)
+pygame.display.set_caption('Culture Ritual')
 ## Main game loop ##
 nloop = 0
+
+
 while done == False:
+
+    
     
     # inputs
     handle_input_events()
@@ -145,11 +266,12 @@ while done == False:
     # update state
     for p in populations:
         p.act()
+
     
     #update(all_units)
     
     # screen draw
-    draw(screen, all_units)
+    draw_sprites(screen, all_units)
      
     # run at X fps
     clock.tick(15)

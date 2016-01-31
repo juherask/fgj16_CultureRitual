@@ -60,7 +60,7 @@ class Population:
             closest_unit.procreate_cooldown = 1.0
             self.all_units.append(new_unit)
             
-            print(unit, closest_unit, "procriates at", new_unit.position)
+            #print(unit, closest_unit, "procriates at", new_unit.position)
     
     def flee_or_approach_if_should(self, unit, speed):
         min_d, min_closest = distance_to_closest_unit(unit, self.all_units)
@@ -72,7 +72,7 @@ class Population:
             unit.position[X] += unit.dv[X]
             unit.position[Y] += unit.dv[Y]
            
-            print(unit, "at", unit.position, "flees/approaces", min_closest, "at", min_closest.position, "by", unit.dv)
+            #print(unit, "at", unit.position, "flees/approaces", min_closest, "at", min_closest.position, "by", unit.dv)
     
     def jitter(self, unit):
         unit.position[X] = unit.position[X]+randint(-1,1)
