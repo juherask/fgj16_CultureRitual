@@ -1,5 +1,5 @@
 import pygame
-from random import random, randint
+from random import random, randint, choice
 from collections import OrderedDict
 from numpy import int32, int64
 import platform
@@ -15,11 +15,17 @@ import pop
 # ~DEFINES
 X = 0
 Y = 1
+AEGING_SPEED = 0.01 #how quickly population grows, how quickly cooldowns inc
+
+COLOR_GRAY = (30,30,30)
 
 # Globals, UGLY!
 done = False
 man_sprite = None
 man_frame_key = None
+all_units = []
+populations = []
+active_population_idx = 0
 level = 0
 sounds = True
 music = True
@@ -28,16 +34,28 @@ def load_assets():
     global man_sprite
     global man_frame_key
     man_sprite = pygame.image.load('assets/zealot.png').convert_alpha()
-    button_sprite = pygame.image.load('assets/button.png').convert_alpha()
     man_frame_key = OrderedDict([
         ("idle", (0.1, [])),
         ("walk_s",(0.5, [])),
         ("walk_n",(0.5, [])),
         ("walk_w",(0.5, [])),
-        ("walk_e",(0.5, []))])
+        ("walk_e",(0.5, [])),
+        ("poof",(0.2, [])),
+        ("die",(0.2, [])),
+        ("stab",(0.2, [])),
+        ("Dance",(0.2, [])),
+        ("Food sacrifice",(0.2, [])),
+        ("Animal sacrifice",(0.2, [])),
+        ("Psychedelics",(0.2, [])),
+        ("Social isolation",(0.2, []))
+    ])
     for cycle, key in enumerate(man_frame_key.keys()):
-        for frame in range(4):
-            r = pygame.Rect( frame*20, cycle*30, 20, 30 )
+        for frame in range(6):
+            r = None
+            if key == "Social isolation":
+                r = pygame.Rect( 2*20, 6*30, 20, 30 )
+            else:
+                r = pygame.Rect( frame*20, cycle*30, 20, 30 )
             man_frame_key[key][1].append(r)
 
 def recolor_sprite(sprite):
@@ -62,16 +80,43 @@ def recolor_sprite(sprite):
             if pixels[x][y]==color_bit_conversion(0xFF663E23):
                 pixels[x][y] = color_bit_conversion(dark_shirt_color)
 
-def update(units):
-    pass
+## Variable initialization ##
+def initialize_population(pop_size, pop_center, all_units_list):
+    global man_sprite
+    new_pop = pop.Population(all_units_list)
+    
+    unit_man_sprite = man_sprite.copy()
+    recolor_sprite(unit_man_sprite)
 
-def draw_ui(screen, buttons):
+    for i in range(pop_size):
+        new_unit = pop.Unit(new_pop)
+        new_unit.position=[pop_center[X]+randint(0,size[X]/5), pop_center[Y]+randint(0,size[Y]/5)]
+        new_unit.sprite=unit_man_sprite
+        all_units_list.append( new_unit )
+        
+    return new_pop
+    
+    
+def update(populations, all_unitsh):
+    # age
+    for u in all_units:
+        # procreation cooldown doubles as age
+        u.procreate_cooldown=max(0.0, u.procreate_cooldown-AEGING_SPEED)
+        u.meet_cooldown=max(0.0, u.meet_cooldown-AEGING_SPEED)
+    
+    for p in populations:
+        p.act()
+
+def draw_ui(screen, buttons, myfont):
+    
     for btn in buttons:
         # button is 3-tuple (color, rect, text)
+        pygame.draw.rect(screen, btn[0], btn[1])
+        text_surface = myfont.render(btn[2], False, (255,0,0))
+        screen.blit(text_surface,btn[1])   
         
-        pygame.draw.rect(screen, ...)
-        #pygame.font.render()
-        myfont.render()
+        print(btn[1])
+
 
 def draw_sprites(screen, all_units):
     global man_frame_key
@@ -82,36 +127,109 @@ def draw_sprites(screen, all_units):
     all_units.sort(key=lambda unit: unit.position[Y])
     for unit in all_units:
         anim = None
-        if unit.dv == [0.0,0.0]:
-            anim = "idle"
-        elif abs(unit.dv[X])>abs(unit.dv[Y]):
-            if unit.dv[X]<0:
-                anim = "walk_w"
+        
+        # Standard reactive actions
+        if unit.action_anim_key == None:
+            if unit.dv[X]<0.001 and unit.dv[Y]<0.001:
+                if unit.procreate_cooldown>1.0:
+                    anim = "poof"
+                else:
+                    anim = "idle"
+            elif abs(unit.dv[X])>abs(unit.dv[Y]):
+                if unit.dv[X]<0:
+                    anim = "walk_w"
+                else:
+                    anim = "walk_e"
             else:
-                anim = "walk_e"
+                if unit.dv[Y]<0:
+                    anim = "walk_n"
+                else:
+                    anim = "walk_s"
+        # initial actions
         else:
-            if unit.dv[Y]<0:
-                anim = "walk_n"
-            else:
-                anim = "walk_s"
+            anim = unit.action_anim_key
             
+            unit.action_anim_cooldown-=AEGING_SPEED
+            if unit.action_anim_cooldown< 0.0:
+                # animation done, ok
+                unit.action_anim_cooldown = 0.0
+                unit.action_anim_key = None
+                
+                
         unit.sprite.set_clip( man_frame_key[anim][1][int(unit.anim_frame)] )
         sprite_frame = unit.sprite.subsurface(unit.sprite.get_clip())
         screen.blit(sprite_frame, unit.position)
         
-        unit.anim_frame+=1.0
+        unit.anim_frame+=man_frame_key[anim][0]
         if unit.anim_frame>3.5:
-            unit.anim_frame = 0
+            if anim == "poof":
+                unit.anim_frame = 3
+            else:
+                unit.anim_frame = 0
+    
+def do_ritual(ritual_key):
+    global all_units
+    global populations
+    global active_population_idx
+    global man_frame_key
+    
+    ap = populations[active_population_idx]
+    
+    units_in_active_pop = [unit for unit in all_units if
+        (unit.population == ap and
+        unit.procreate_cooldown<=1.0 and # children do not do rituals
+        unit.action_anim_cooldown==0.0)]
+    if len(units_in_active_pop)==0:
+        print("WARNING: no units available for a ritual in the population")
+        return
+    
+    print(len(units_in_active_pop))
+    victim = choice(units_in_active_pop)
+    
+    if ritual_key in man_frame_key.keys():
+        victim.action_anim_key = ritual_key
+        victim.action_anim_cooldown = 2.0 # duration of the anim (in age units).
+    elif ritual_key == "Human sacrifice":
+        executioner = None
+		#TODO: find executioner and the target
+        #for candidate in units_in_active_pop:
+		#	for other in [unit for unit in all_units if unit.population == ap]:
+        #        if pop.distance_to_closest_unit(candidate, other)
+
+    else:
+        print("ERROR: unknown ritual", ritual_key)
         
-    
-    pygame.display.update()
-    
-    
 def handle_input_events():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             on_esc_pressed()
-
+            
+        if event.type == pygame.KEYDOWN:
+            global populations
+            global active_population_idx
+            if event.key == pygame.K_p:
+                populations[active_population_idx].propensity_library["fear"]=100
+                populations[active_population_idx].propensity_library["responsibility"]=50
+            if event.key == pygame.K_1:
+                active_population_idx = 0
+            if event.key == pygame.K_2:
+                active_population_idx = 1
+            if event.key == pygame.K_3:
+                active_population_idx = 2
+                
+            if event.key == pygame.K_z:
+                do_ritual("Dance")
+            if event.key == pygame.K_x:
+                do_ritual("Human sacrifice")
+            if event.key == pygame.K_c:
+                do_ritual("Food sacrifice")
+            if event.key == pygame.K_v:
+                do_ritual("Animal sacrifice") 
+            if event.key == pygame.K_b:
+                do_ritual("Psychedelics")
+            if event.key == pygame.K_n:
+                do_ritual("Social isolation") 
+                
 def on_esc_pressed():
     global done
     done = True
@@ -155,39 +273,18 @@ def show_level_start_window(screen,levelNo):
 
     defaultButtonWidth = screen.get_width()*0.1
     defaultButtonHeight = screen.get_height()*0.03
-
-    greyTuple = (30,30,30)
-
     posXRel = screen.get_width()
     posYRel = screen.get_height()
 
-    buttonDict = {"levelStart":[pygame.draw.rect(screen,greyTuple,(posXRel/2,posYRel*-0.9,defaultButtonWidth,defaultButtonHeight)),"Let it begin"],
-                  "levelEnd":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"It is done"],
-                  "Human Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.5,posYRel*-0.3,defaultButtonWidth,defaultButtonHeight)),"Human Sacrifice"],
-                  "Animal Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.7,posYRel*-0.75,defaultButtonWidth,defaultButtonHeight)),"Animal Sacrifice"],
-                  "Psychedelics":[pygame.draw.rect(screen,greyTuple,(posXRel*0.1,posYRel*-0.1,defaultButtonWidth,defaultButtonHeight)),"Psychedelics"],
-                  "Food Sacrifice":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.9,defaultButtonWidth,defaultButtonHeight)),"Food Sacrifice"],
-                  "Music":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"Music"],
-                  "Social Isolation":[pygame.draw.rect(screen,greyTuple,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight)),"Social Isolation"]}
-    
+    buttonDict = [[COLOR_GRAY,(posXRel/2,posYRel*-0.9,defaultButtonWidth,defaultButtonHeight),"Let it begin"],
+                  [COLOR_GRAY,(posXRel*0.3,posYRel*-0.6,defaultButtonWidth,defaultButtonHeight),"It is done"]]
 
     textMeasPosHeight = screen.get_height()/2
     
     for stringBit in missionStrings[levelNo]:
         text_surface = myfont.render(stringBit, False, (255,0,0))
-        
-        #print(dir(text_surface))
         textMeasLength = text_surface.get_width()
         textMeasPosHeight -= text_surface.get_height()
-
-        
-
-        #button = Button() #Button class is created
-        #buttonWidthAdjust = button.get_width()/2
-        #button.setCords(screen.get_width()/2-buttonWidthAdjust)
-
-        
-
         screen.blit(text_surface,(screen.get_width()/2-textMeasLength/2,screen.get_height()/2-textMeasPosHeight))   
 
     
@@ -227,27 +324,9 @@ clock = pygame.time.Clock()
 
 load_assets()
 
-## Variable initialization ##
-def initialize_population(pop_size, pop_center, all_units_list):
-    global man_sprite
-    new_pop = pop.Population(all_units_list)
-    
-    unit_man_sprite = man_sprite.copy()
-    recolor_sprite(unit_man_sprite)
-        
-    for i in range(pop_size):
-        new_unit = pop.Unit(new_pop)
-        new_unit.position=[pop_center[X]+randint(0,size[X]/5), pop_center[Y]+randint(0,size[Y]/5)]
-        new_unit.sprite=unit_man_sprite
-        all_units_list.append( new_unit )
-        
-    return new_pop
-
-all_units = []
-pop1 = initialize_population(12, [size[X]/5,size[Y]/2], all_units)
-pop2 = initialize_population(7, [3*size[X]/5,size[Y]/2], all_units)
-pop3 = initialize_population(9, [size[X]/2,size[Y]/2+50], all_units)
-populations = [pop1, pop2, pop3]
+populations.append(initialize_population(12, [size[X]/5,size[Y]/2], all_units))
+populations.append(initialize_population(7, [3*size[X]/5,size[Y]/2], all_units))
+populations.append(initialize_population(9, [size[X]/2,size[Y]/2+50], all_units))
 
 #Intro window loop
 show_level_start_window(screen,2)
@@ -255,28 +334,36 @@ pygame.display.set_caption('Culture Ritual')
 ## Main game loop ##
 nloop = 0
 
+defaultButtonWidth = screen.get_width()*0.1
+defaultButtonHeight = screen.get_height()*0.03
+posXRel = screen.get_width()
+posYRel = screen.get_height()
+ritual_buttons = [
+    [COLOR_GRAY,pygame.Rect(posXRel*0.5,posYRel*0.3,defaultButtonWidth,defaultButtonHeight),"Human Sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.7,posYRel*0.75,defaultButtonWidth,defaultButtonHeight),"Animal Sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.1,posYRel*0.1,defaultButtonWidth,defaultButtonHeight),"Psychedelics"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.3,posYRel*0.9,defaultButtonWidth,defaultButtonHeight),"Food Sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.3,posYRel*0.6,defaultButtonWidth,defaultButtonHeight),"Music"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.3,posYRel*0.6,defaultButtonWidth,defaultButtonHeight),"Social Isolation"]
+]
 
 while done == False:
-
-    
-    
     # inputs
     handle_input_events()
     
     # update state
-    for p in populations:
-        p.act()
+    update(populations, all_units)
 
-    
-    #update(all_units)
     
     # screen draw
     draw_sprites(screen, all_units)
+    draw_ui(screen, ritual_buttons, myfont)
+    pygame.display.update()
      
     # run at X fps
     clock.tick(15)
     
-    pygame.image.save(screen, "screenshot%02d.tga" % nloop)
+    #pygame.image.save(screen, "screenshot%02d.tga" % nloop)
     nloop+=1
  
 # close the window and quit
