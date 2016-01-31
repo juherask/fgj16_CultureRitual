@@ -26,16 +26,15 @@ def load_assets():
     global man_frame_key
     man_sprite = pygame.image.load('assets/zealot.png').convert_alpha()
     man_frame_key = OrderedDict([
-        ("idle",[]),
-        ("walk_s",[]),
-        ("walk_n",[]),
-        ("walk_w",[]),
-        ("walk_e",[])])
-    for cycle in range(5):
-        key = man_frame_key.keys()[cycle]
+        ("idle", (0.1, [])),
+        ("walk_s",(0.5, [])),
+        ("walk_n",(0.5, [])),
+        ("walk_w",(0.5, [])),
+        ("walk_e",(0.5, []))])
+    for cycle, key in enumerate(man_frame_key.keys()):
         for frame in range(4):
             r = pygame.Rect( frame*20, cycle*30, 20, 30 )
-            man_frame_key[key].append(r)
+            man_frame_key[key][1].append(r)
 
 def recolor_sprite(sprite):
     pixels = pygame.surfarray.pixels2d( sprite )
@@ -84,7 +83,7 @@ def draw(screen, all_units):
             else:
                 anim = "walk_s"
             
-        unit.sprite.set_clip( man_frame_key[anim][int(unit.anim_frame)] )
+        unit.sprite.set_clip( man_frame_key[anim][1][int(unit.anim_frame)] )
         sprite_frame = unit.sprite.subsurface(unit.sprite.get_clip())
         screen.blit(sprite_frame, unit.position)
         
@@ -153,7 +152,7 @@ while done == False:
     draw(screen, all_units)
      
     # run at X fps
-    clock.tick(1)
+    clock.tick(15)
     
     pygame.image.save(screen, "screenshot%02d.tga" % nloop)
     nloop+=1
