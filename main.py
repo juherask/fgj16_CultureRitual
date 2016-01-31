@@ -180,7 +180,7 @@ def draw_sprites(screen, all_units):
         
         unit.anim_frame+=man_frame_key[anim][0]
         if unit.anim_frame>3.5:
-            if anim == "poof":
+            if anim == "poof" or unit.dead == True:
                 unit.anim_frame = 3
             else:
                 unit.anim_frame = 0
@@ -214,7 +214,7 @@ def do_ritual(ritual_key):
     elif ritual_key == "Human sacrifice":
         for u in units_in_active_pop:
             # someone dies
-            if active_population.kill_whomever_is_close(unit)!=None:
+            if active_population.kill_whomever_is_close(u)!=None:
                 break
 		
     else:
@@ -307,7 +307,7 @@ ritual_buttons = [
     [COLOR_GRAY,pygame.Rect(posXRel*0.1,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Animal sacrifice"],
     [COLOR_GRAY,pygame.Rect(posXRel*0.2,posYRel*0.3,defaultButtonWidth,defaultButtonHeight)," Psychedelics"],
     [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.1,defaultButtonWidth,defaultButtonHeight), "Food sacrifice"],
-    [COLOR_GRAY,pygame.Rect(posXRel*0.7,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Music"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.7,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Dance"],
     [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.3,defaultButtonWidth,defaultButtonHeight)," Social isolation"]
 ]
 
