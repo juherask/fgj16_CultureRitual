@@ -12,6 +12,7 @@ else:
 #import os, sys
 #sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 import pop
+from actions import influence_population
 
 # ~DEFINES
 X = 0
@@ -30,6 +31,7 @@ active_population_idx = 0
 level = 0
 sounds = True
 music = True
+sound_effects = {}
 
 def load_assets():
     global man_sprite
@@ -58,6 +60,12 @@ def load_assets():
             else:
                 r = pygame.Rect( frame*20, cycle*30, 20, 30 )
             man_frame_key[key][1].append(r)
+            
+    # To do: load sound effects and music
+    pygame.mixer.music.load('assets/BackroundMusic.wav')
+    pygame.mixer.music.play(-1)
+            
+    
 
 def recolor_sprite(sprite):
     pixels = pygame.surfarray.pixels2d( sprite )
@@ -115,8 +123,6 @@ def draw_ui(screen, buttons, myfont):
         pygame.draw.rect(screen, btn[0], btn[1])
         text_surface = myfont.render(btn[2], False, (255,0,0))
         screen.blit(text_surface,btn[1])   
-        
-        print(btn[1])
 
 
 def draw_sprites(screen, all_units):
@@ -174,43 +180,47 @@ def do_ritual(ritual_key):
     global active_population_idx
     global man_frame_key
     
-    ap = populations[active_population_idx]
+    active_population = populations[active_population_idx]
     
+    # rituals affect to the mood of the population and change how 
+    #  they behave
+    influence_population(active_population, ritual_key)
+        
     units_in_active_pop = [unit for unit in all_units if
-        (unit.population == ap and
+        (unit.population == active_population and
         unit.procreate_cooldown<=1.0 and # children do not do rituals
         unit.action_anim_cooldown==0.0)]
     if len(units_in_active_pop)==0:
         print("WARNING: no units available for a ritual in the population")
         return
     
-    print(len(units_in_active_pop))
-    victim = choice(units_in_active_pop)
+    
     
     if ritual_key in man_frame_key.keys():
+        victim = choice(units_in_active_pop)
         victim.action_anim_key = ritual_key
         victim.action_anim_cooldown = 2.0 # duration of the anim (in age units).
     elif ritual_key == "Human sacrifice":
-        executioner = None
-		#TODO: find executioner and the target
-        #for candidate in units_in_active_pop:
-		#	for other in [unit for unit in all_units if unit.population == ap]:
-        #        if pop.distance_to_closest_unit(candidate, other)
-
+        for u in units_in_active_pop:
+            # someone dies
+            if active_population.kill_whomever_is_close(unit)!=None:
+                break
+		
     else:
         print("ERROR: unknown ritual", ritual_key)
         
-def handle_input_events():
+def handle_input_events(buttons):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             on_esc_pressed()
             
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             global populations
             global active_population_idx
             if event.key == pygame.K_p:
                 populations[active_population_idx].propensity_library["fear"]=100
                 populations[active_population_idx].propensity_library["responsibility"]=50
+            
             if event.key == pygame.K_1:
                 active_population_idx = 0
             if event.key == pygame.K_2:
@@ -230,12 +240,19 @@ def handle_input_events():
                 do_ritual("Psychedelics")
             if event.key == pygame.K_n:
                 do_ritual("Social isolation") 
+            
+        elif event.type == pygame.MOUSEBUTTONUP:
+            pos = pygame.mouse.get_pos()
+            for btn in buttons:
+                #[COLOR_GRAY,pygame.Rect(posXRel*0.5,posYRel*0.3,defaultButtonWidth,defaultButtonHeight),"Human Sacrifice"],
+                if btn[1].collidepoint(pos):
+                    print(btn[2])
+                    do_ritual(btn[2].strip()) 
+                    break
                 
 def on_esc_pressed():
     global done
     done = True
-
-    
 
 def show_level_end_window(level):
     #Display the end-of-level dialog box that corresponds to the current level
@@ -275,22 +292,21 @@ defaultButtonHeight = screen.get_height()*0.05
 posXRel = screen.get_width()
 posYRel = screen.get_height()
 ritual_buttons = [
-    [COLOR_GRAY,pygame.Rect(posXRel*0.2,posYRel*0.1,defaultButtonWidth,defaultButtonHeight)," Human Sacrifice"],
-    [COLOR_GRAY,pygame.Rect(posXRel*0.1,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Animal Sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.2,posYRel*0.1,defaultButtonWidth,defaultButtonHeight)," Human sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.1,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Animal sacrifice"],
     [COLOR_GRAY,pygame.Rect(posXRel*0.2,posYRel*0.3,defaultButtonWidth,defaultButtonHeight)," Psychedelics"],
-    [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.1,defaultButtonWidth,defaultButtonHeight), "Food Sacrifice"],
+    [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.1,defaultButtonWidth,defaultButtonHeight), "Food sacrifice"],
     [COLOR_GRAY,pygame.Rect(posXRel*0.7,posYRel*0.2,defaultButtonWidth,defaultButtonHeight)," Music"],
-    [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.3,defaultButtonWidth,defaultButtonHeight)," Social Isolation"]
+    [COLOR_GRAY,pygame.Rect(posXRel*0.6,posYRel*0.3,defaultButtonWidth,defaultButtonHeight)," Social isolation"]
 ]
 
 while done == False:
     # inputs
-    handle_input_events()
+    handle_input_events(ritual_buttons)
     
     # update state
     update(populations, all_units)
 
-    
     # screen draw
     draw_sprites(screen, all_units)
     draw_ui(screen, ritual_buttons, ritualfont)

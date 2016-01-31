@@ -88,50 +88,49 @@ hostilityMod = {"Music":10,
 
 
 
-def influence_population(targetPopulation, physImp):
+def influence_population(targetPopulation, imp):
     #Kaydaan fyysisten implementaatioiden lista lapi ja
     #lasketaan, miten populaation emootiot muuttuvat
-    for imp in physImp:
-        targetPopulation.safety += safetyMod[imp]
-        targetPopulation.fear += fearMod[imp]
-        targetPopulation.amusement += amusementMod[imp]
-        targetPopulation.confidence += confidenceMod[imp]
-        targetPopulation.responsibility += responsibilityMod[imp]
-        targetPopulation.hostility += responsibilityMod[imp]
-        
+    targetPopulation.propensity_library["safety"] += safetyMod[imp]
+    targetPopulation.propensity_library["fear"] += fearMod[imp]
+    targetPopulation.propensity_library["amusement"]   += amusementMod[imp]
+    targetPopulation.propensity_library["confidence"] += confidenceMod[imp]
+    targetPopulation.propensity_library["responsibility"]   += responsibilityMod[imp]
+    targetPopulation.propensity_library["hostility"]   += responsibilityMod[imp]
+    
 def violence_happened(senderPopulation,targetPopulation):
 
     #Such generosity weakens the giver and the recipient.
 
-    senderPopulation.safety += 2
-    senderPopulation.fear += 7
-    senderPopulation.amusement -= 10
-    senderPopulation.confidence -= 3
-    senderPopulation.responsibility -= 5
-    senderPopulation.hostility -= 3
+    senderPopulation.propensity_library["safety"] -= 2
+    senderPopulation.propensity_library["fear"] += 7
+    senderPopulation.propensity_library["amusement"]   -= 10
+    senderPopulation.propensity_library["confidence"]   -= 3
+    senderPopulation.propensity_library["responsibility"]   -= 5
+    senderPopulation.propensity_library["hostility"]   -= 3
     
-    targetPopulation.safety -= 10
-    targetPopulation.fear += 10
-    targetPopulation.amusement -= 10
-    targetPopulation.confidence -= 3
-    targetPopulation.responsibility += 5
-    targetPopulation.hostility += 9
+    targetPopulation.propensity_library["safety"] -= 10
+    targetPopulation.propensity_library["fear"] += 10
+    targetPopulation.propensity_library["amusement"]   -= 10
+    targetPopulation.propensity_library["confidence"] -= 3
+    targetPopulation.propensity_library["responsibility"]   += 5
+    targetPopulation.propensity_library["hostility"]   += 9
 
-def reproductionHappened(senderPopulation, targetPopulation):
+def reproduction_happened(senderPopulation, targetPopulation):
     
-    senderPopulation.safety += 6
-    senderPopulation.fear -= 6
-    senderPopulation.amusement += 5
-    senderPopulation.confidence += 3
-    senderPopulation.responsibility += 10
-    senderPopulation.hostility -= 3
+    senderPopulation.propensity_library["safety"] += 2
+    senderPopulation.propensity_library["fear"] -= 6
+    senderPopulation.propensity_library["amusement"]   += 5
+    senderPopulation.propensity_library["confidence"] += 3
+    senderPopulation.propensity_library["responsibility"]   += 10
+    senderPopulation.propensity_library["hostility"]   -= 3
     
-    targetPopulation.safety += 6
-    targetPopulation.fear -= 6
-    targetPopulation.amusement += 5
-    targetPopulation.confidence += 3
-    targetPopulation.responsibility += 10
-    targetPopulation.hostility -= 3
+    targetPopulation.propensity_library["safety"] += 2
+    targetPopulation.propensity_library["fear"] -= 6
+    targetPopulation.propensity_library["amusement"]   += 5
+    targetPopulation.propensity_library["confidence"] += 3
+    targetPopulation.propensity_library["responsibility"]   += 10
+    targetPopulation.propensity_library["hostility"]   -= 3
 
     
 

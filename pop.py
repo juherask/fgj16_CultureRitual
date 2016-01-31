@@ -17,7 +17,7 @@ def distance_to_closest_unit(from_unit, units):
     min_d_i = None
     for i, unit in enumerate(units):
         d = sqrt((from_unit.position[X]-unit.position[X])**2+(from_unit.position[Y]-unit.position[Y])**2)
-        if (unit!=from_unit and d<min_d):
+        if (unit!=from_unit and d<min_d and unit.dead==False):
             min_d = d
             min_d_i = i
         
@@ -58,7 +58,7 @@ class Population:
             
             closest_unit.dv = [0.0,0.0]
             
-            new_unit = Unit(unit.population)
+            new_unit = Unit(choice([unit.population, closest_unit.population]))
             new_unit.position = [(unit.position[X]+closest_unit.position[X])/2,
                                  (unit.position[Y]+closest_unit.position[X])/2]
             new_unit.sprite = unit.sprite
@@ -67,6 +67,8 @@ class Population:
             unit.procreate_cooldown = 1.0
             closest_unit.procreate_cooldown = 1.0
             self.all_units.append(new_unit)
+            
+            actions.reproduction_happened(unit.population, closest_unit.population)
             
             #print(unit, closest_unit, "procriates at", new_unit.position)
         
@@ -105,14 +107,25 @@ class Population:
         
         if unit.procreate_cooldown>1.0:
             pass # children do not kill
-        else:
+        elif (d<DISTANCE_CLOSE): 
+            unit.action_anim_key = "stab"
+            unit.action_anim_cooldown = 0.2
+            closest_unit.action_anim_key = "die"
+            closest_unit.action_anim_cooldown = 0.2
             
+            actions.violence_happened(unit.population, closest_unit.population)
+            
+            return closest_unit
+        else:
+            # jitter in anger            
             unit.position[X] = unit.position[X]+choice([-1,1])
             unit.position[Y] = unit.position[Y]+choice([-1,1])
+            
+            return None
     
     def act(self):
         for unit in self.all_units:
-            if unit.action_anim_cooldown>0.0:
+            if unit.action_anim_cooldown>0.0 or unit.dead==False:
                 continue
             if unit.population != self:
                 continue # do a population at the time
