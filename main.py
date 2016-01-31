@@ -172,7 +172,9 @@ def draw_sprites(screen, all_units):
         anim = None
         
         # Standard reactive actions
-        if unit.action_anim_key == None:
+        if unit.dead == True:
+            anim = "die"
+        elif unit.action_anim_key == None:
             if unit.dv[X]<0.001 and unit.dv[Y]<0.001:
                 if unit.procreate_cooldown>1.0:
                     anim = "poof"

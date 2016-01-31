@@ -88,14 +88,12 @@ class Population:
         elif min_d<200 and (speed>0 or (speed<0 and min_d>10)):
             unit.dv = [dx/min_d*speed,
                        dy/min_d*speed]
-            print(unit.dv)
-            
             unit.position[X] += unit.dv[X]
             unit.position[Y] += unit.dv[Y]
            
             #print(unit, "at", unit.position, "flees/approaces", min_closest, "at", min_closest.position, "by", unit.dv)
     
-    def stop_when_close_then_wait():
+    def stop_when_close_then_wait(self, unit):
         d, closest_unit = distance_to_closest_unit(unit, self.all_units)
         
         if unit.meet_cooldown==0.0 and d<DISTANCE_CLOSE:
@@ -110,8 +108,10 @@ class Population:
         elif (d<DISTANCE_CLOSE): 
             unit.action_anim_key = "stab"
             unit.action_anim_cooldown = 0.2
+            closest_unit.anim_frame = 0
             closest_unit.action_anim_key = "die"
             closest_unit.action_anim_cooldown = 0.2
+            closest_unit.dead = True
             
             actions.violence_happened(unit.population, closest_unit.population)
             
@@ -125,7 +125,7 @@ class Population:
     
     def act(self):
         for unit in self.all_units:
-            if unit.action_anim_cooldown>0.0 or unit.dead==False:
+            if unit.action_anim_cooldown>0.0 or unit.dead==True:
                 continue
             if unit.population != self:
                 continue # do a population at the time
