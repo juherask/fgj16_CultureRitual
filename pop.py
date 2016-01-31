@@ -41,11 +41,11 @@ class Unit:
 class Population:
     def __init__(self, all_units):
         self.propensity_library = {
-            "safety": 100,# randint(7,13),
+            "safety": randint(7,13),
             "fear": randint(7,13),
             "amusement": randint(7,13),
             "confidence": randint(7,13),
-            "responsibility" : 50,# randint(7,13),
+            "responsibility" : randint(7,13),
             "hostility": randint(7,13)}
         
         self.all_units = all_units

@@ -64,6 +64,17 @@ def load_assets():
     # To do: load sound effects and music
     pygame.mixer.music.load('assets/BackroundMusic.wav')
     pygame.mixer.music.play(-1)
+    
+    sound_effects["Music"] = None
+    sound_effects["Dance"] = None
+    sound_effects["Psychedelics"] = None
+    sound_effects["Social isolation"] = None
+    sound_effects["Animal sacrifice"] = None
+    sound_effects["Human sacrifice"] = None
+    sound_effects["Plant sacrifice"] = None
+    sound_effects["Food sacrifice"] = None
+    
+    
             
     
 
