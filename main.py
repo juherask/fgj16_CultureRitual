@@ -36,6 +36,8 @@ sound_effects = {}
 def load_assets():
     global man_sprite
     global man_frame_key
+    global sound_effects
+    
     man_sprite = pygame.image.load('assets/zealot.png').convert_alpha()
     man_frame_key = OrderedDict([
         ("idle", (0.1, [])),
@@ -65,18 +67,41 @@ def load_assets():
     pygame.mixer.music.load('assets/BackroundMusic.wav')
     pygame.mixer.music.play(-1)
     
-    sound_effects["Music"] = None
-    sound_effects["Dance"] = None
-    sound_effects["Psychedelics"] = None
-    sound_effects["Social isolation"] = None
-    sound_effects["Animal sacrifice"] = None
-    sound_effects["Human sacrifice"] = None
-    sound_effects["Plant sacrifice"] = None
-    sound_effects["Food sacrifice"] = None
+    sound_effects["Music"] = [
+        pygame.mixer.Sound('assets/Dance.wav'),
+    ]
+    sound_effects["Dance"] = [
+        pygame.mixer.Sound('assets/Dance.wav'),
+    ]
+    sound_effects["Psychedelics"] = [
+        pygame.mixer.Sound('assets/Amusement.wav')
+    ]
+    sound_effects["Social isolation"] = [
+        pygame.mixer.Sound('assets/SocialIsolation.wav'),
+    ]
+    sound_effects["Animal sacrifice"] = [
+        pygame.mixer.Sound('assets/AnimalSacrifice.wav')
+    ]
+    sound_effects["Human sacrifice"] = [
+        pygame.mixer.Sound('assets/HumanSacrifice.wav'),
+    ]
+    sound_effects["Plant sacrifice"] = [
+        pygame.mixer.Sound('assets/FoodRitual.wav')
+    ]
+    sound_effects["Food sacrifice"] = [
+        pygame.mixer.Sound('assets/FoodRitual.wav')
+    ]
     
-    
-            
-    
+    # TODO: these
+    sound_effects["Murder"] = [
+        pygame.mixer.Sound('assets/Hostility.wav')
+    ]
+    sound_effects["Irresponsibility"] = [
+        pygame.mixer.Sound('assets/Irresponsibility.wav')
+    ]
+    sound_effects["Responsibility"] = [
+        pygame.mixer.Sound('assets/Responsibility.wav')
+    ]
 
 def recolor_sprite(sprite):
     pixels = pygame.surfarray.pixels2d( sprite )
@@ -216,9 +241,13 @@ def do_ritual(ritual_key):
             # someone dies
             if active_population.kill_whomever_is_close(u)!=None:
                 break
-		
     else:
         print("ERROR: unknown ritual", ritual_key)
+        
+    if ritual_key in sound_effects:
+        samples = sound_effects[ritual_key]
+        sample = choice(samples)
+        sample.play()
         
 def handle_input_events(buttons):
     for event in pygame.event.get():
