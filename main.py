@@ -64,43 +64,43 @@ def load_assets():
             man_frame_key[key][1].append(r)
             
     # To do: load sound effects and music
-    pygame.mixer.music.load('assets/BackroundMusic.wav')
+    pygame.mixer.music.load('assets/BackroundMusic.ogg')
     pygame.mixer.music.play(-1)
     
     sound_effects["Music"] = [
-        pygame.mixer.Sound('assets/Dance.wav'),
+        pygame.mixer.Sound('assets/Dance.ogg'),
     ]
     sound_effects["Dance"] = [
-        pygame.mixer.Sound('assets/Dance.wav'),
+        pygame.mixer.Sound('assets/Dance.ogg'),
     ]
     sound_effects["Psychedelics"] = [
-        pygame.mixer.Sound('assets/Amusement.wav')
+        pygame.mixer.Sound('assets/Amusement.ogg')
     ]
     sound_effects["Social isolation"] = [
-        pygame.mixer.Sound('assets/SocialIsolation.wav'),
+        pygame.mixer.Sound('assets/SocialIsolation.ogg'),
     ]
     sound_effects["Animal sacrifice"] = [
-        pygame.mixer.Sound('assets/AnimalSacrifice.wav')
+        pygame.mixer.Sound('assets/AnimalSacrifice.ogg')
     ]
     sound_effects["Human sacrifice"] = [
-        pygame.mixer.Sound('assets/HumanSacrifice.wav'),
+        pygame.mixer.Sound('assets/HumanSacrifice.ogg'),
     ]
     sound_effects["Plant sacrifice"] = [
-        pygame.mixer.Sound('assets/FoodRitual.wav')
+        pygame.mixer.Sound('assets/FoodRitual.ogg')
     ]
     sound_effects["Food sacrifice"] = [
-        pygame.mixer.Sound('assets/FoodRitual.wav')
+        pygame.mixer.Sound('assets/FoodRitual.ogg')
     ]
     
     # TODO: these
     sound_effects["Murder"] = [
-        pygame.mixer.Sound('assets/Hostility.wav')
+        pygame.mixer.Sound('assets/Hostility.ogg')
     ]
     sound_effects["Irresponsibility"] = [
-        pygame.mixer.Sound('assets/Irresponsibility.wav')
+        pygame.mixer.Sound('assets/Irresponsibility.ogg')
     ]
     sound_effects["Responsibility"] = [
-        pygame.mixer.Sound('assets/Responsibility.wav')
+        pygame.mixer.Sound('assets/Responsibility.ogg')
     ]
 
 def recolor_sprite(sprite):
